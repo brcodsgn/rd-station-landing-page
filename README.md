@@ -10,6 +10,7 @@ Skill do Claude que replica uma landing page (HTML pronto, protótipo, KV ou ref
 - Usa blocos HTML só para efeitos que o editor não faz (animações, cards com hover, texto digitando).
 - Salva, verifica no servidor e confere desktop e mobile na pré-visualização.
 - Corrige os problemas conhecidos do renderizador do RD (alinhamento mobile, padding de linha ignorado, rolagem suave, revelação ao rolar, rolagem lateral).
+- Otimiza desempenho: diagnóstico com Lighthouse, imagens em WebP (conversor usando o próprio Chrome), carregamento adiado/lazy, preload da primeira dobra, título/descrição e correções de acessibilidade do formulário.
 - Opcional: pixel da Meta só na LP, com evento `Lead` antes do redirecionamento do formulário.
 
 ## Requisitos
@@ -35,6 +36,7 @@ No app do Claude, também dá para compactar a pasta (`.zip` renomeado para `.sk
 |---|---|
 | `SKILL.md` | Fluxo passo a passo (planejar, imagens, montar, salvar, verificar, ajustes, publicação) |
 | `scripts/bricks-builder.js` | Biblioteca `window.RDB` injetada na aba do editor |
+| `scripts/webp/` | Conversor de imagens para WebP (servidor local + página que usa o encoder do Chrome) |
 | `references/armadilhas.md` | Problemas reais do editor/renderizador do RD e como contornar |
 | `references/formato-bricks.md` | Formato observado do JSON do editor Bricks |
 | `examples/exemplo-lp-completa.js` | LP completa de exemplo (marca fictícia) |
