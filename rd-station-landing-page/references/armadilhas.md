@@ -51,6 +51,9 @@ Cada item abaixo custou tempo real num projeto. Leia antes de montar e consulte 
 - Primeira dobra: `RDB.preloadHead([...])` no `javascriptHead` (fundo da seção do topo + imagens visíveis de início) e `fetchpriority="high"` só nelas.
 - **Título e meta description** publicados vêm de **Configurações → Endereço (link) e informações da página** (`?page=5`), não de `properties.title/description` do design. Se ficarem vazios, a página sai com `<title></title>` (perde em SEO e acessibilidade). Peça autorização e preencha.
 - Acessibilidade do formulário nativo: os campos anti-spam (`emP7yF13ld`, `sh0uldN07ch4ng3`) não têm label e o select2 do campo Cidade gera `href="javascript:"` e `role` inválido → `RDB.formA11yJS()` no `jsBody`.
+- Imagens nativas do RD saem **todas** com `loading="lazy"`, inclusive o logo do topo: `RDB.formA11yJS()` troca para `eager` as da primeira seção.
+- Contraste: texto colorido da marca sobre branco (ex.: coral `#FA747E`, razão ~2,6:1) reprova `color-contrast` mesmo em título grande (mínimo 3:1). É decisão de marca — aponte e sugira um tom mais escuro, não troque sozinho.
+- Dicas comuns que **não** valem aqui: `tabindex="0"` no link do select2 (cria parada duplicada no Tab; o foco já fica no input do select2); MutationObserver permanente na página toda (custo sem ganho na auditoria); `role="main"` (o RD já passa em "landmark-one-main"); alt em bandeiras do telefone (só se o Lighthouse apontar `image-alt`).
 - O que **não** adianta/ não dá: `display=swap` (o RD já usa nas fontes Google); recarregar select2/jQuery (o RD já carrega no `<head>`, bloqueando a renderização — não dá para adiar pela página); cookies de terceiros e avisos de CSP no console (RD/Facebook); pixels e GA da conta. Esses limitam o Desempenho no celular a ~75 mesmo com a página otimizada (desktop ~90+).
 
 ## Rastreamento (pixel)
