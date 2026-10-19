@@ -39,6 +39,19 @@ Cada item abaixo custou tempo real num projeto. Leia antes de montar e consulte 
 - Depois de publicar, confira a página no ar baixando o HTML (`curl -sL <url>?nc=<aleatório>`) e procurando um trecho único da mudança.
 - A pré-visualização tem botões **Desktop/Mobile**; o clique às vezes não pega. Confirme pela largura do iframe (`offsetWidth` 480 = mobile) e clique de novo pelo `ref` do `find`.
 - Depois de salvar, a aba do editor recarrega: espere `bricksEditor.exportDesign` existir de novo antes do próximo comando.
+- Sessão do RD expira: se o editor cair em `accounts.rdstation.com` (tela de login), pare e peça para o usuário logar. Nunca faça login por ele.
+- O editor pode estar com **Salvamento automático** ligado: alterações temporárias (ex.: seção para upload) podem ser gravadas sozinhas — remova-as antes de terminar.
+
+## Desempenho (Lighthouse)
+- Medir: a API do PageSpeed costuma estar sem cota; rode local com o Chrome instalado: `CHROME_PATH=".../Google Chrome" npx -y lighthouse@12 <url> --chrome-flags="--headless=new" --output=json --output-path=lh.json --only-categories=performance,accessibility,best-practices,seo` (celular é o padrão; `--preset=desktop` para desktop). Rode 2x: a nota oscila.
+- Leia `audits.metrics.details.items[0].observed*` além da nota. No caso real: LCP **observado** 0,8 s × **simulado** 11,5 s. A diferença eram 4,3 MB de imagens que começavam a baixar antes do LCP — na simulação de 4G elas "atrasam" o título. O vilão era peso de imagem, não JS.
+- Imagens: WebP, largura ≈ 2× a maior exibida, ≤ 100 KB (fundos até ~150). Sem `cwebp` no Mac, use `scripts/webp/` (encoder do Chrome; mantém transparência). Compare original × WebP lado a lado antes de subir. Resultado típico: −90% de peso sem diferença visível.
+- O uploader do RD aceita **um arquivo por vez** (modal fecha sozinho e a URL fica no componente selecionado). Use uma seção temporária com um componente Imagem, repita "Carregar imagem" → `find` do input → `file_upload` → ler a URL, e confira todas byte a byte no CDN. Troque as URLs no design inteiro com `RDB.swapUrls` (pega componentes, blocos HTML e fundos de seção) e remova a seção temporária.
+- Imagens que só aparecem depois (peças de um loop, carrossel): `data-src` + `RDB.deferImagesJS()` (carregam após o `load`). Abaixo da dobra em blocos HTML: `loading="lazy" decoding="async"` + `width/height`. As imagens nativas do RD já saem com `loading="lazy"`.
+- Primeira dobra: `RDB.preloadHead([...])` no `javascriptHead` (fundo da seção do topo + imagens visíveis de início) e `fetchpriority="high"` só nelas.
+- **Título e meta description** publicados vêm de **Configurações → Endereço (link) e informações da página** (`?page=5`), não de `properties.title/description` do design. Se ficarem vazios, a página sai com `<title></title>` (perde em SEO e acessibilidade). Peça autorização e preencha.
+- Acessibilidade do formulário nativo: os campos anti-spam (`emP7yF13ld`, `sh0uldN07ch4ng3`) não têm label e o select2 do campo Cidade gera `href="javascript:"` e `role` inválido → `RDB.formA11yJS()` no `jsBody`.
+- O que **não** adianta/ não dá: `display=swap` (o RD já usa nas fontes Google); recarregar select2/jQuery (o RD já carrega no `<head>`, bloqueando a renderização — não dá para adiar pela página); cookies de terceiros e avisos de CSP no console (RD/Facebook); pixels e GA da conta. Esses limitam o Desempenho no celular a ~75 mesmo com a página otimizada (desktop ~90+).
 
 ## Rastreamento (pixel)
 - O RD injeta no fim do `<body>` de **todas** as LPs o pixel configurado na **conta** (integração do Facebook). Ele não aparece no design da LP nem nas Configurações da página. Trocar ali afeta todas as LPs: decisão da equipe.
