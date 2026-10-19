@@ -311,6 +311,42 @@ fbq('init','${pixelId}');
     return row;
   };
 
+  /* ---------- desempenho ---------- */
+  // Lista as URLs de imagem do CDN do RD usadas no design (componentes, blocos HTML e fundos).
+  RDB.listImageUrls = (design) => [...new Set(JSON.stringify(design).match(/https:\/\/[a-z0-9.-]*cloudfront\.net\/cms\/files\/\d+\/\d+\/\$[a-z0-9]+/g) || [])];
+  // Troca URLs em TODO o design (map: { urlAntiga: urlNova }). Devolve { design, trocadas }.
+  RDB.swapUrls = (design, map) => {
+    let s = JSON.stringify(design), n = 0;
+    Object.keys(map).forEach((u) => { if (s.includes(u)) { s = s.split(u).join(map[u]); n++; } });
+    return { design: JSON.parse(s), trocadas: n };
+  };
+  // <link rel=preload> para imagens da primeira dobra (vai no javascriptHead).
+  RDB.preloadHead = (urls) => '\n<!-- imagens da primeira dobra -->\n' + urls.map((u) => `<link rel="preload" href="${u}" as="image" fetchpriority="high">`).join('\n');
+  // Correções de acessibilidade do formulário nativo do RD (vai no jsBody):
+  // labels nos campos anti-spam ocultos e links/roles inválidos do select2 (campo Cidade).
+  RDB.formA11yJS = () => `
+<style>.rdb-sr{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}</style>
+<script>
+(function(){
+  function fix(){
+    ['emP7yF13ld','sh0uldN07ch4ng3'].forEach(function(n){
+      var el=document.querySelector('input[name="'+n+'"]');if(!el)return;
+      if(!el.id)el.id='hp-'+n;
+      if(document.querySelector('label[for="'+el.id+'"]'))return;
+      var l=document.createElement('label');l.className='rdb-sr';l.htmlFor=el.id;l.textContent='Campo oculto anti-spam';
+      el.parentNode.insertBefore(l,el);
+    });
+    document.querySelectorAll('a.select2-choice[href^="javascript:"]').forEach(function(a){a.removeAttribute('href');a.setAttribute('role','button')});
+    document.querySelectorAll('input.select2-focusser[role="button"]').forEach(function(i){i.removeAttribute('role')});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();
+  window.addEventListener('load',function(){fix();setTimeout(fix,1500)});
+})();
+</script>`;
+  // Em blocos HTML: imagens que só aparecem depois (ex.: peças de um loop) usam data-src e
+  // este script põe o src depois do load — saem da disputa com o conteúdo da primeira dobra.
+  RDB.deferImagesJS = (selector = 'img[data-src]') => `<script>(function(){function go(){document.querySelectorAll('${selector}').forEach(function(im){im.src=im.getAttribute('data-src');im.removeAttribute('data-src')})}if(document.readyState==='complete')go();else window.addEventListener('load',go)})();</script>`;
+
   /* ---------- prévia: congelar animações no estado final (para capturas/medições) ---------- */
   RDB.previewDoc = () => { const f = [...document.querySelectorAll('iframe')].find((x) => x.offsetWidth > 0); return f && f.contentDocument; };
   RDB.freezeAnimations = (doc, scope = '*') => {
