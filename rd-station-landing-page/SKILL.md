@@ -29,6 +29,7 @@ Mostre ao usuário o mapa das seções antes de construir se houver dúvida de e
 1. Prepare arquivos numerados por ordem de aparição (`01-hero-...png`, `02-...`) numa pasta do projeto e mantenha um `urls.json` nome→URL. PNG com transparência para recortes; JPG para fotos/fundos. Reduza para ~2× o tamanho exibido.
 2. Suba pelo uploader do RD (só funciona com o modal aberto): no editor, clique num componente **Imagem** → `find` "Carregar imagem" → clique → `find` o input de arquivo do modal → `file_upload`. A URL fica no componente selecionado: leia via `exportDesign()`. Repita `find` a cada arquivo (refs mudam).
 3. Verifique cada URL baixando (curl/Python) e comparando bytes com o arquivo local. Não aceita SVG/WOFF.
+4. Prefira **WebP** (~2× a largura exibida, ≤ 100 KB). Converta com `scripts/webp/` (`servidor.py <pasta>` + `converter.html` no Chrome; detalhes no cabeçalho do servidor) e compare original × WebP antes de subir.
 Se o usuário preferir subir sozinho, peça a lista de URLs **na ordem da pasta** e confira os bytes — é comum faltar um arquivo e deslocar a lista.
 
 ## 3. Injetar a biblioteca no editor
@@ -71,6 +72,13 @@ Botão "Pré-visualizar" → a prévia é um `iframe` (mesma origem): inspecione
 Para componentes HTML, teste também localmente em 320/375/414/768/1024/1280px (painel do navegador com `resize_window`) antes de aplicar.
 Para medir/fotografar efeitos animados: `RDB.freezeAnimations(RDB.previewDoc(), '.minha-classe *')` mostra o estado final. Teste ajustes de posição injetando `<style>` na prévia antes de gravar.
 Limitação: com a aba do Chrome em segundo plano, animações e timers ficam lentos; não conclua que "a animação quebrou" por um screenshot parado — valide lógica de animação por simulação/DOM e peça ao usuário para conferir o movimento.
+
+## 7b. Desempenho (antes de publicar ou quando pedirem "deixar verde")
+1. Lighthouse local (comando em armadilhas → Desempenho), celular e desktop. Compare LCP **observado** × simulado para achar a causa real.
+2. Imagens: liste com `RDB.listImageUrls(d)`, converta para WebP, suba (uma por vez), confira bytes e troque tudo com `RDB.swapUrls(d, mapa)`.
+3. Blocos HTML: `data-src` + `RDB.deferImagesJS()` para imagens tardias; `loading="lazy"` + `width/height` abaixo da dobra.
+4. `javascriptHead`: `RDB.preloadHead([...])` com as imagens da primeira dobra. `jsBody`: `RDB.formA11yJS()`.
+5. Título e descrição em Configurações (com autorização). Publique (com autorização) e rode o Lighthouse de novo; relate antes × depois e o que é limite do RD.
 
 ## 8. Ajustes depois (a equipe também edita)
 - Busque a LP atual pelo nome na lista (ID pode ter mudado).
